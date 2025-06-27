@@ -1,21 +1,27 @@
+using Cysharp.Threading.Tasks;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
-public class Astar //IDisposable 사용
+public class Astar  //IDisposable 사용
 {
     public Vector3Int strPos;
     public Vector3Int endPos;
 
+    public Coroutine currentTask = null;
+
+    public LineRenderer lineRenderer;
+
     public List<CellData> openList = new List<CellData>();
     public HashSet<Vector3Int> closedList = new HashSet<Vector3Int>();
-    public HashSet<Vector3Int> WallPoses = new HashSet<Vector3Int>();
+    public HashSet<Vector3Int> wallPoses = new HashSet<Vector3Int>();
     public Vector3Int[] dir = new Vector3Int[4]
     {
         new Vector3Int(2, 0, 0), new Vector3Int(-2, 0, 0), new Vector3Int(0, 0, 2), new Vector3Int(0, 0, -2)
     };
 
-    public LineRenderer lineRenderer;
+    public List<Vector3> roadList = new List<Vector3>();
 
 
     public IEnumerator FindTarget()
@@ -42,7 +48,7 @@ public class Astar //IDisposable 사용
             {
                 Vector3Int neighborPos = currentCell.CurrentPos + dir[i];
 
-                if (WallPoses.Contains(neighborPos) || closedList.Contains(neighborPos))
+                if (wallPoses.Contains(neighborPos) || closedList.Contains(neighborPos))
                 {
                     continue;
                 }
@@ -70,8 +76,28 @@ public class Astar //IDisposable 사용
                     existingNeighbor.F = f;
                 }
             }
+            yield return null;
         }
-        yield return null;
+    }
+
+    public async UniTaskVoid RoadToEnd()
+    {
+        GameObject obj = Global.TurnSystem.GetTurnObj().gameObject;
+        //Debug.Log(obj.name);
+        roadList.Reverse();
+        foreach (Vector3 road in roadList)
+        {
+            float time = 0;
+            while (time <= 1)
+            {
+                obj.transform.position = Vector3.Lerp(obj.transform.position, road, time);
+                time += Time.deltaTime * 4;
+                await UniTask.Yield();
+            }
+        }
+        roadList.Clear();
+        currentTask = null;
+        Global.TurnSystem.GetTurnObj().SetState(TurnStates.End);
     }
 
     private void FillRoad(CellData cellData)
@@ -80,12 +106,14 @@ public class Astar //IDisposable 사용
         {
             lineRenderer.positionCount += 1;
             lineRenderer.SetPosition(lineRenderer.positionCount - 1, cellData.CurrentPos);
+            roadList.Add(cellData.CurrentPos);
             FillRoad(cellData.Parent);
         }
         else
         {
             lineRenderer.positionCount += 1;
             lineRenderer.SetPosition(lineRenderer.positionCount - 1, strPos);
+            RoadToEnd().Forget();
         }
     }
 
@@ -97,6 +125,8 @@ public class Astar //IDisposable 사용
         int max = Mathf.Max(x, y);
         return min * 14 + (max - min) * 10;
     }
+
+
 }
 
 

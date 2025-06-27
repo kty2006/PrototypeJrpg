@@ -1,4 +1,6 @@
+using Cysharp.Threading.Tasks;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
@@ -6,8 +8,8 @@ using UnityEngine;
 public class GameManager : MonoBehaviour
 {
     public MapData MapData;
-    public GameObject obj;
     public Astar astar = new Astar();
+    public static Dictionary<string, int> InstancesId = new Dictionary<string, int>();
 
     public void OnDrawGizmos()
     {
@@ -29,16 +31,26 @@ public class GameManager : MonoBehaviour
     public void Start()
     {
         astar.lineRenderer = GetComponent<LineRenderer>();
-        obj.transform.position = MapData.ColumnArray[0].Row[0];
+        Global.TurnSystem.TurnSys().Forget();
+        Global.EventHandler.Resgister<int>(typeof(GameManager), RoadFind);
     }
+
     public void Update()
     {
         if (Input.GetMouseButtonDown(0))
         {
-            //obj.transform.position = 
-            astar.strPos = Vector3Int.RoundToInt(obj.transform.position);
-            astar.endPos = FindCell(Input.mousePosition);
-            StartCoroutine(astar.FindTarget());
+            Global.ObjectEventHandler.Invoke(InstancesId[Global.TurnSystem.GetTurnObj().gameObject.name], UnitStates.Attack);
+            Global.TurnSystem.GetTurnObj().SetState(TurnStates.Playing);
+        }
+    }
+
+    public void RoadFind(int num)
+    {
+        astar.strPos = Vector3Int.RoundToInt(Global.TurnSystem.GetTurnObj().transform.position);
+        astar.endPos = FindCell(Input.mousePosition);
+        if (astar.currentTask == null)
+        {
+            astar.currentTask = StartCoroutine(astar.FindTarget());
         }
     }
 
