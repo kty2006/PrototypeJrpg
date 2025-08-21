@@ -1,6 +1,7 @@
 using Cysharp.Threading.Tasks;
 using System;
 using System.Collections.Generic;
+using UnityEditor;
 using UnityEngine;
 
 
@@ -14,6 +15,7 @@ public class Unit : TurnObject
     public ActionFactory ActionFactory;
     public EventHandlers EventHandlers;
     public Rigidbody Rigidbody;
+    public AudioSource AudioSource;
 
     public virtual void Start()
     {
@@ -99,6 +101,7 @@ public class Unit : TurnObject
         Animator.SetTrigger("Die");
         await UniTask.WaitForSeconds(Animator.GetCurrentAnimatorClipInfo(0).Length);
         EventHandlers.typeEventHandler.Invoke<Unit>(typeof(GameInitializer), this);
+        Debug.Log("´ÙÀÌ");
         Destroy(gameObject);
         
     }

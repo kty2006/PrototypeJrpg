@@ -7,17 +7,15 @@ public class PathSelectorWindow : EditorWindow
 {
     private PathController selectedPathController;
     private HashSet<Vector3> currentSelectedPointsSet = new HashSet<Vector3>();
-    private static HashSet<Vector3> allOccupiedPoints = new HashSet<Vector3>();
+    private static Dictionary<Vector3, PathController> allOccupiedPoints = new Dictionary<Vector3, PathController>();
 
     private int gridCols = 12;
-
+    private int gridRows = 12;
     private Vector2 scrollPosition;
     private const float pointSize = 12f;
-
     private bool isDragging = false;
     private bool dragSelectionModeIsAdding = true;
     private int lastDraggedIndex = -1;
-
     private const string generatedObjectsParentName = "[Generated Objects]";
 
     [MenuItem("Window/Path Selector")]
@@ -37,26 +35,16 @@ public class PathSelectorWindow : EditorWindow
         selectedPathController = selectedObject.GetComponent<PathController>();
 
         UpdateAllOccupiedPoints();
-
-        EditorGUILayout.LabelField("Selected Object:", selectedObject.name, EditorStyles.boldLabel);
-
-        EditorGUILayout.LabelField("Grid Layout", EditorStyles.boldLabel);
-        gridCols = EditorGUILayout.IntField("Columns", gridCols);
-        EditorGUILayout.Separator();
-
-        if (gridCols <= 0 || selectedPathController.sourcePathPoints == null) return;
-
-        if (selectedPathController.sourcePathPoints.Count == 0)
-        {
-            EditorGUILayout.HelpBox("'Source Path Points' 리스트에 좌표를 먼저 추가해주세요.", MessageType.Warning);
-            return;
-        }
-
         UpdateCurrentSelectedPointsSet();
 
-        // --- [최종 수정] 사용자의 마지막 예시에 맞게 정렬 순서 변경 ---
-        // 1. Z값을 기준으로 내림차순 정렬 (큰 값이 먼저)
-        // 2. Z값이 같으면 X값을 기준으로 오름차순 정렬 (작은 값이 먼저)
+        EditorGUILayout.LabelField("Selected Object:", selectedObject.name, EditorStyles.boldLabel);
+        EditorGUILayout.LabelField("Grid Layout", EditorStyles.boldLabel);
+        gridCols = EditorGUILayout.IntField("Columns", gridCols);
+        gridRows = EditorGUILayout.IntField("Rows", gridRows);
+        EditorGUILayout.Separator();
+
+        if (gridCols <= 0 || gridRows <= 0 || selectedPathController.sourcePathPoints == null) return;
+
         List<Vector3> sortedPoints = selectedPathController.sourcePathPoints
             .OrderByDescending(p => Mathf.RoundToInt(p.z))
             .ThenBy(p => Mathf.RoundToInt(p.x))
@@ -64,7 +52,8 @@ public class PathSelectorWindow : EditorWindow
 
         scrollPosition = EditorGUILayout.BeginScrollView(scrollPosition);
 
-        int gridRows = Mathf.CeilToInt((float)sortedPoints.Count / gridCols);
+        int maxRows = Mathf.CeilToInt((float)sortedPoints.Count / gridCols);
+        if (gridRows > maxRows) gridRows = maxRows;
         float cellHeight = (position.width - 20) / gridCols;
         float totalHeight = cellHeight * gridRows;
         Rect gridAreaRect = GUILayoutUtility.GetRect(0, 10000, totalHeight, totalHeight);
@@ -75,43 +64,62 @@ public class PathSelectorWindow : EditorWindow
             int col = i % gridCols;
             int row = i / gridCols;
 
+            if (row >= gridRows) break;
+
             float cellWidth = gridAreaRect.width / gridCols;
             float cellX = gridAreaRect.x + col * cellWidth;
             float cellY = gridAreaRect.y + row * cellHeight;
-
             Rect cellRect = new Rect(cellX, cellY, cellWidth, cellHeight);
             Rect pointRect = new Rect(cellRect.center.x - pointSize / 2, cellRect.center.y - pointSize / 2, pointSize, pointSize);
 
             Vector3 currentPoint = sortedPoints[i];
-            bool isSelectedByThis = currentSelectedPointsSet.Contains(currentPoint);
-            bool isOccupiedByOther = !isSelectedByThis && allOccupiedPoints.Contains(currentPoint);
 
-            if (isSelectedByThis) Handles.color = Color.green;
-            else if (isOccupiedByOther) Handles.color = Color.red;
-            else Handles.color = Color.white;
+            bool isOccupied = allOccupiedPoints.TryGetValue(currentPoint, out PathController owner);
+            bool isOwnedByThis = isOccupied && owner == selectedPathController;
+            bool isLockedByOther = isOccupied && !isOwnedByThis && !owner.allowOverlap;
+
+            // --- [최종 수정] 색상 결정 로직 ---
+            if (isOccupied)
+            {
+                // 점이 소유되었다면, 무조건 그 소유자 컨트롤러의 pathColor로 표시
+                Handles.color = owner.pathColor;
+            }
+            else
+            {
+                // 소유되지 않은 점은 흰색으로 표시
+                Handles.color = Color.white;
+            }
 
             Handles.DrawSolidDisc(pointRect.center, Vector3.forward, pointSize / 2);
 
-            if (cellRect.Contains(e.mousePosition) && !isOccupiedByOther)
+            // 상호작용 로직 ('잠긴' 점은 클릭 불가)
+            if (cellRect.Contains(e.mousePosition) && !isLockedByOther)
             {
                 if (e.type == EventType.MouseDown && e.button == 0)
                 {
                     isDragging = true;
                     lastDraggedIndex = i;
-                    dragSelectionModeIsAdding = !isSelectedByThis;
-                    Undo.RecordObject(selectedPathController, "Drag Selection");
-                    ToggleSelection(currentPoint, dragSelectionModeIsAdding);
+                    dragSelectionModeIsAdding = !isOwnedByThis;
+
+                    var controllersToRecord = new List<UnityEngine.Object> { selectedPathController };
+                    if (isOccupied && !isOwnedByThis && owner != null)
+                    {
+                        controllersToRecord.Add(owner);
+                    }
+                    Undo.RecordObjects(controllersToRecord.ToArray(), "Change Point Ownership");
+
+                    HandlePointInteraction(currentPoint, isOwnedByThis, owner, dragSelectionModeIsAdding);
                     e.Use();
                 }
                 else if (e.type == EventType.MouseDrag && isDragging && lastDraggedIndex != i)
                 {
                     lastDraggedIndex = i;
-                    ToggleSelection(currentPoint, dragSelectionModeIsAdding);
+                    HandlePointInteraction(currentPoint, isOwnedByThis, owner, dragSelectionModeIsAdding);
                     e.Use();
                 }
             }
 
-            GUIContent buttonContent = new GUIContent("", $"Sorted Index: {i}\nValue: {currentPoint}");
+            GUIContent buttonContent = new GUIContent("", $"Index: {i}\nValue: {currentPoint}");
             EditorGUI.LabelField(cellRect, buttonContent);
         }
 
@@ -119,13 +127,42 @@ public class PathSelectorWindow : EditorWindow
         {
             isDragging = false;
             lastDraggedIndex = -1;
-            EditorUtility.SetDirty(selectedPathController);
+            var allControllers = FindObjectsByType<PathController>(FindObjectsSortMode.None);
+            foreach (var controller in allControllers)
+            {
+                if (controller != null) EditorUtility.SetDirty(controller);
+            }
         }
 
         EditorGUILayout.EndScrollView();
         Handles.color = Color.white;
 
         DrawObjectGenerationUI();
+    }
+
+    private void HandlePointInteraction(Vector3 point, bool isOwnedByThis, PathController previousOwner, bool shouldAdd)
+    {
+        if (shouldAdd)
+        {
+            if (previousOwner != null && !isOwnedByThis)
+            {
+                previousOwner.selectedPathPoints.Remove(point);
+            }
+            if (!selectedPathController.selectedPathPoints.Contains(point))
+            {
+                selectedPathController.selectedPathPoints.Add(point);
+            }
+        }
+        else
+        {
+            if (isOwnedByThis)
+            {
+                selectedPathController.selectedPathPoints.Remove(point);
+            }
+        }
+        UpdateAllOccupiedPoints();
+        UpdateCurrentSelectedPointsSet();
+        Repaint();
     }
 
     private void DrawObjectGenerationUI()
@@ -152,25 +189,12 @@ public class PathSelectorWindow : EditorWindow
         PathController[] allControllers = FindObjectsByType<PathController>(FindObjectsSortMode.None);
         foreach (var controller in allControllers)
         {
-            if (controller == selectedPathController) continue;
+            if (controller == null) continue;
             foreach (var point in controller.selectedPathPoints)
-                allOccupiedPoints.Add(point);
+                allOccupiedPoints[point] = controller;
         }
     }
-    private void ToggleSelection(Vector3 point, bool shouldAdd)
-    {
-        bool isCurrentlySelected = currentSelectedPointsSet.Contains(point);
-        if (shouldAdd && !isCurrentlySelected)
-        {
-            selectedPathController.selectedPathPoints.Add(point);
-            UpdateCurrentSelectedPointsSet();
-        }
-        else if (!shouldAdd && isCurrentlySelected)
-        {
-            selectedPathController.selectedPathPoints.Remove(point);
-            UpdateCurrentSelectedPointsSet();
-        }
-    }
+
     private void CreateObjects()
     {
         Transform parent = selectedPathController.transform.Find(generatedObjectsParentName);
@@ -191,6 +215,7 @@ public class PathSelectorWindow : EditorWindow
         }
         Undo.CollapseUndoOperations(group);
     }
+
     private void ClearObjects()
     {
         Transform parent = selectedPathController.transform.Find(generatedObjectsParentName);
@@ -202,12 +227,13 @@ public class PathSelectorWindow : EditorWindow
             Undo.CollapseUndoOperations(group);
         }
     }
+
     private void UpdateCurrentSelectedPointsSet()
     {
         if (selectedPathController == null) return;
         currentSelectedPointsSet = new HashSet<Vector3>(selectedPathController.selectedPathPoints);
-        Repaint();
     }
+
     private void OnSelectionChange() { Repaint(); }
     private void OnFocus() { Repaint(); }
 }

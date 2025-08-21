@@ -10,17 +10,24 @@ public class StageSelectUi : MonoBehaviour
 
     public void ImageChange(int i)
     {
-        index = Mathf.Clamp(index + i, 0, StageSprites.Length-1);
+        index = Mathf.Clamp(index + i, 0, StageSprites.Length - 1);
         StageImage.sprite = StageSprites[index];
     }
 
     public void Home()
     {
-        SceneManager.LoadScene(0);
+        SceneManager.LoadScene("Loading");
+        SceneNumber.Number = 0;
     }
 
     public void SelectStage()
     {
-        SceneManager.LoadScene(index + 2);
+        SceneManager.LoadScene("Loading");
+        SceneNumber.Number = index + 2;
+    }
+
+    public void Exit()
+    {
+        Application.Quit();
     }
 }

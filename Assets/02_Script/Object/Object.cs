@@ -17,7 +17,7 @@ public class Object : Unit
             if (unit.LiqStates.Hp > 0)
             {
                 unit.DecHp(States.StNormalAttack);
-                unit.Die();
+                unit.Die().Forget();
             }
         }
         EventHandlers.typeEventHandler.Invoke<Unit>(typeof(PlayerInformation), (Unit)EventHandlers.typeEventHandler.Invoke<TurnObject>(typeof(TurnSystem)));

@@ -73,8 +73,7 @@ public class GridSystem : MonoBehaviour
 
         vertices = vertexList.ToArray();
         colors = colorList.ToArray();
-        indices = indexList.ToArray();
-        totalVertices = vertices.Length;
+        int[] indices = indexList.ToArray();
 
         mesh = new Mesh
         {
@@ -87,35 +86,72 @@ public class GridSystem : MonoBehaviour
 
     public void SetGrid(TurnObject obj)
     {
-        if (changeColor.Count > 0)
+        // 1. 이전에 색칠된 그리드가 있다면 파란색으로 되돌립니다.
+        foreach (int i in changeColor)
         {
-            foreach (int i in changeColor)
+            if (i < colors.Length)
             {
-                colors[i] = Color.blue; // 초기화
-            }
-            changeColor.Clear();
-
-        }
-        else
-        {
-            Vector3 center = obj.transform.position;
-            float range = MapData.CellSize.x * Mathf.Max(obj.GridMap.Up, obj.GridMap.Down, obj.GridMap.Left, obj.GridMap.Right);
-
-            for (int i = 0; i < vertices.Length; i += 2)
-            {
-                Vector3 midPoint = (vertices[i] + vertices[i + 1]) / 2f;
-                float distance = Vector3.Distance(midPoint, center);
-
-                if (distance <= range)
-                {
-                    colors[i] = Color.red;
-                    colors[i + 1] = Color.red;
-                    changeColor.Add(i);
-                    changeColor.Add(i + 1);
-                }
+                colors[i] = Color.blue;
             }
         }
+        changeColor.Clear();
 
+        // 2. ActionRangeSystem으로부터 정확한 공격 범위 좌표 리스트를 가져옵니다.
+        List<Vector3> validCells = eventHandlers.typeEventHandler.Invoke<List<Vector3>>(typeof(ActionRangeSystem));
+
+        // 표시할 범위가 없으면 여기서 종료합니다.
+        if (validCells == null || validCells.Count == 0)
+        {
+            mesh.colors = colors;
+            return;
+        }
+
+        // 리스트보다 빠른 조회를 위해 HashSet을 사용합니다.
+        HashSet<Vector3> validCellSet = new HashSet<Vector3>(validCells);
+
+        float halfCellX = MapData.CellSize.x / 2f;
+        float halfCellZ = MapData.CellSize.z / 2f;
+
+        // 3. 모든 그리드 선을 순회합니다.
+        for (int i = 0; i < vertices.Length; i += 2)
+        {
+            Vector3 p1 = vertices[i];
+            Vector3 p2 = vertices[i + 1];
+
+            Vector3 adjacentCell1;
+            Vector3 adjacentCell2;
+
+            // 선이 세로선인지 가로선인지 판별하여 인접한 두 셀의 중심 좌표를 계산합니다.
+            if (Mathf.Approximately(p1.x, p2.x)) // 세로선
+            {
+                float lineX = p1.x;
+                float midZ = (p1.z + p2.z) / 2f;
+                adjacentCell1 = new Vector3(lineX - halfCellX, 0, midZ);
+                adjacentCell2 = new Vector3(lineX + halfCellX, 0, midZ);
+            }
+            else if (Mathf.Approximately(p1.z, p2.z)) // 가로선
+            {
+                float lineZ = p1.z;
+                float midX = (p1.x + p2.x) / 2f;
+                adjacentCell1 = new Vector3(midX, 0, lineZ - halfCellZ);
+                adjacentCell2 = new Vector3(midX, 0, lineZ + halfCellZ);
+            }
+            else
+            {
+                continue; // 그리드 선이 아니면 건너뜁니다.
+            }
+
+            // 4. 인접한 두 셀 중 하나라도 공격 범위(validCellSet)에 포함되어 있다면, 해당 선을 붉게 칠합니다.
+            if (validCellSet.Contains(adjacentCell1) || validCellSet.Contains(adjacentCell2))
+            {
+                colors[i] = Color.red;
+                colors[i + 1] = Color.red;
+                changeColor.Add(i);
+                changeColor.Add(i + 1);
+            }
+        }
+
+        // 5. 변경된 색상 정보를 메시에 적용합니다.
         mesh.colors = colors;
     }
 }

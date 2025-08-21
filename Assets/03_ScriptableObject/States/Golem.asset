@@ -14,10 +14,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   UnitType: 5
   UnitImage: {fileID: 21300000, guid: 6849f6188bc41424ca889f24ea2a0d8d, type: 3}
-  StHp: 10
-  StSpeed: 50
-  StMp: 20
-  StNormalAttack: 5
+  StHp: 150
+  StSpeed: 10
+  StMp: 100
+  StNormalAttack: 15
   TextImfo:
     SkillTextImfos:
     - SkillName: Idle
@@ -40,6 +40,7 @@ MonoBehaviour:
       ManaCost: 0
   SkillDatas:
   - UnitStates: 0
+    AudioResource: {fileID: 8300000, guid: df7087e4d8a8bb546bc08ce68632903f, type: 3}
     Scale: 0
     MpCost: 0
     GridMap:
@@ -50,6 +51,7 @@ MonoBehaviour:
       Right: 0
       Xsize: 0
   - UnitStates: 1
+    AudioResource: {fileID: 8300000, guid: 8ff2a2d7e79f81c40ac447512f879374, type: 3}
     Scale: 0
     MpCost: 0
     GridMap:
@@ -60,6 +62,7 @@ MonoBehaviour:
       Right: 3
       Xsize: 3
   - UnitStates: 2
+    AudioResource: {fileID: 8300000, guid: 2b21ef916f6943c439b71a7c74568878, type: 3}
     Scale: 0
     MpCost: 0
     GridMap:
@@ -70,32 +73,35 @@ MonoBehaviour:
       Right: 3
       Xsize: 3
   - UnitStates: 3
-    Scale: 1
-    MpCost: 10
+    AudioResource: {fileID: 8300000, guid: 323e15cfe809e114ab92c9f4b25e8bc2, type: 3}
+    Scale: 2
+    MpCost: 20
     GridMap:
-      Up: 3
-      Down: 3
-      Ysize: 3
-      Left: 3
-      Right: 3
-      Xsize: 3
+      Up: 2
+      Down: 2
+      Ysize: 2
+      Left: 2
+      Right: 2
+      Xsize: 2
   - UnitStates: 4
-    Scale: 0
-    MpCost: 0
+    AudioResource: {fileID: 8300000, guid: 323e15cfe809e114ab92c9f4b25e8bc2, type: 3}
+    Scale: 3
+    MpCost: 40
     GridMap:
-      Up: 3
-      Down: 3
-      Ysize: 3
-      Left: 3
-      Right: 3
-      Xsize: 3
+      Up: 2
+      Down: 2
+      Ysize: 1
+      Left: 2
+      Right: 2
+      Xsize: 1
   - UnitStates: 5
-    Scale: 0
-    MpCost: 0
+    AudioResource: {fileID: 8300000, guid: 323e15cfe809e114ab92c9f4b25e8bc2, type: 3}
+    Scale: 5
+    MpCost: 60
     GridMap:
-      Up: 3
-      Down: 3
-      Ysize: 3
-      Left: 3
-      Right: 3
-      Xsize: 3
+      Up: 2
+      Down: 2
+      Ysize: 1
+      Left: 2
+      Right: 2
+      Xsize: 1

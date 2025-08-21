@@ -1,6 +1,7 @@
-using UnityEngine;
 using System;
 using System.Linq;
+using System.Threading;
+using UnityEngine;
 
 
 public class EventHandlers
@@ -18,9 +19,18 @@ public class GameInitializer : MonoBehaviour
     public BattleScene BattleScene;
     public UiManager UiManager;
     public PathController Holl;
+    private static CancellationTokenSource previousTurnSystemTokenSource;
 
     void Awake()
     {
+        Application.targetFrameRate = 120;
+        if (previousTurnSystemTokenSource != null)
+        {
+            previousTurnSystemTokenSource.Cancel();
+            previousTurnSystemTokenSource.Dispose();
+        }
+
+        Time.timeScale = 1;
         var eventHandlers = new EventHandlers();
         var enemyManager = new EnemyManager();
         var unitRegistry = new UnitRegistry();
@@ -66,9 +76,9 @@ public class GameInitializer : MonoBehaviour
                 StartCoroutine(pathfindingService.FindTarget());
             }
         });
+        previousTurnSystemTokenSource = TurnSystem.GetCancellationTokenSource();
 
-
-        TurnSystem.TurnSys().Forget();
+        TurnSystem.TurnSys(previousTurnSystemTokenSource.Token).Forget();
         enemyManager.StAi();
     }
     public void Start()

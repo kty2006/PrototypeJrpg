@@ -19,6 +19,7 @@ public class MainUi : MonoBehaviour
     void Start()
     {
         ShakeUntilCondition().Forget();
+        Application.targetFrameRate = 120;
     }
 
     private async UniTask ShakeUntilCondition()
@@ -44,11 +45,11 @@ public class MainUi : MonoBehaviour
         while (Camera.main.fieldOfView > 10)
         {
             Camera.main.fieldOfView -= 0.5f;
-            Debug.Log("end");
             await UniTask.Yield();
         }
 
-        SceneManager.LoadScene(1);
+        SceneManager.LoadScene("Loading");
+        SceneNumber.Number = 1;
 
     }
 }

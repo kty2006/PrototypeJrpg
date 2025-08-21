@@ -5,7 +5,7 @@ using UnityEngine;
 
 public class TurnObject : MonoBehaviour
 {
-    protected TurnStates currentStates = TurnStates.Start;
+    public TurnStates currentStates = TurnStates.Start;
     protected Queue<Action> actionList = new Queue<Action>();
     protected Action onTurnStart;
     public Unit Target;

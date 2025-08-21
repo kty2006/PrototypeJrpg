@@ -43,8 +43,8 @@ public class BattleScene : MonoBehaviour
             Attacker.transform.SetLocalPositionAndRotation(this.AttackerPos, Quaternion.identity);
             Attacker.Target.transform.SetLocalPositionAndRotation(this.DefenderPos, Quaternion.identity);
         };
-        
 
+        Debug.Log("dd");
         SceneCamera.transform.position = CameraSt.transform.position;
         SceneCamera.transform.rotation = CameraSt.transform.rotation;
     }

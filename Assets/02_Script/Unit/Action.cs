@@ -29,6 +29,7 @@ public class Move : I_Action
     {
         Unit = unit;
         states = unitStates;
+        FuncPl += () => { Unit.AudioSource.resource = Unit.States.GetAudio(unitStates); Unit.AudioSource.Play(); };
         FuncEnd += () => { Unit.AutoSetState(); };
     }
     public Unit Unit { get; set; }
@@ -53,10 +54,12 @@ public class Attack : I_Action
         FuncSt += () => { Unit.DecMP(unit.States.GetMpCost(unitStates)); };
 
         FuncPl += () => { Unit.Target.DecHp(Unit.LiqStates.NormalAttack * unit.States.GetScale(unitStates)); };
+        FuncPl += () => { Unit.AudioSource.clip = Unit.States.GetAudio(unitStates); Debug.Log(Unit.AudioSource.clip); Unit.AudioSource.Play(); /*Unit.AudioSource.PlayOneShot(Unit.States.GetAudio(unitStates));*/ };
         FuncPl += () => { Unit.Target.Animator.SetTrigger("Hit"); };
 
-        FuncEnd += () => { Unit.Target.DieCheck(); };
+
         FuncEnd += () => { Unit.AutoSetState(); };
+        FuncEnd += () => { Unit.Target.DieCheck(); };
         FuncEnd += () => { Unit.transform.rotation = Quaternion.identity; };
     }
     public Unit Unit { get; set; }

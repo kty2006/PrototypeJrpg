@@ -36,7 +36,7 @@ public class EnemyManager
             await UniTask.WaitUntil(() => equals && turnObject.UnitType == UnitType.Enemy);
             equals = false;
             eventHandlers.typeEventHandler.Invoke<int>(typeof(WaitUI), 0);
-            await UniTask.WaitForSeconds(Random.Range(2, 4)); //µÙ∑π¿Ã
+            await UniTask.WaitForSeconds(Random.Range(3, 5)); //µÙ∑π¿Ã
             eventHandlers.typeEventHandler.Invoke<int>(typeof(WaitUI), 0);
             SelectAction();
         }
@@ -67,7 +67,7 @@ public class EnemyManager
                 progress = false;
 
             }
-            else
+            else if (((Unit)turnObject).LiqStates.Mp >= ((Unit)turnObject).States.GetMpCost((UnitStates)unitStates))
             {
                 for (int i = 0; i < actionRangeSystem.GetActionGrid().Count; i++)
                 {

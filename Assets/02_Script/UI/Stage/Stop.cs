@@ -14,7 +14,7 @@ public class Stop : MonoBehaviour
 
     public async UniTaskVoid Play()
     {
-        await UniTask.WaitUntil(() => Input.anyKey);
+        await UniTask.WaitUntil(() => Input.GetKeyDown(KeyCode.Space));
         Time.timeScale = 1;
         Panel.gameObject.SetActive(false);
     }

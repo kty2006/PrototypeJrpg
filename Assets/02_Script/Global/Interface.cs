@@ -1,6 +1,5 @@
 using Cysharp.Threading.Tasks;
 using System;
-using UnityEditor.Experimental.GraphView;
 using UnityEngine;
 public interface I_Action
 {
@@ -47,8 +46,10 @@ public interface I_Action
     {
         while (true)
         {
-            if(Unit != null)
+            if(Unit == null)
+            {
                 return false;
+            }
             AnimatorStateInfo stateInfo = Unit.Animator.GetNextAnimatorStateInfo(0);
             if (stateInfo.IsName("Idle"))
             {

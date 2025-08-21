@@ -1,5 +1,6 @@
 using System;
 using UnityEngine;
+using UnityEngine.Audio;
 
 
 
@@ -83,12 +84,29 @@ public class UnitImfo : ScriptableObject
         }
         return mpCost;
     }
+
+    public AudioClip GetAudio(UnitStates unitStates)
+    {
+        int count = 0;
+        AudioClip audio = null;
+        while (count < SkillDatas.Length)
+        {
+            if (SkillDatas[count].UnitStates == unitStates)
+            {
+                audio = SkillDatas[count].AudioResource;
+                break;
+            }
+            count++;
+        }
+        return audio;
+    }
 }
 
 [Serializable]
 public class SkillDatas
 {
     public UnitStates UnitStates;
+    public AudioClip AudioResource;
     public int Scale;
     public float MpCost;
     public GridMap GridMap;

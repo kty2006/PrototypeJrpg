@@ -16,13 +16,15 @@ MonoBehaviour:
   UnitImage: {fileID: 0}
   StHp: 1000
   StSpeed: 0
-  StMana: 0
+  StMp: 0
   StNormalAttack: 5
   TextImfo:
     SkillTextImfos: []
   SkillDatas:
   - UnitStates: 3
-    ManaCost: 0
+    AudioResource: {fileID: 8300000, guid: 21c4a490b24ba2045bc815f7626a40ef, type: 3}
+    Scale: 0
+    MpCost: 0
     GridMap:
       Up: 3
       Down: 3

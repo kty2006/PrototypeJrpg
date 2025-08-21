@@ -3,6 +3,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using Unity.VisualScripting;
 using UnityEngine;
 public class TurnSystem : IDisposable
@@ -12,16 +13,19 @@ public class TurnSystem : IDisposable
     private TurnObject currentTurnObj;
     private TurnObject friendlyTurnObj;
     private EventHandlers eventHandlers;
+    private CancellationTokenSource cancellationTokenSource;
 
     public void Initialize(EventHandlers eventHandlers)
     {
         this.eventHandlers = eventHandlers;
         this.eventHandlers.typeEventHandler.Resgister<TurnObject>(typeof(TurnSystem), FastFriendly);
         this.eventHandlers.typeEventHandler.Resgister<Unit>(typeof(GameInitializer), Remove);
+        turnObj.Clear();
+        cancellationTokenSource = new CancellationTokenSource();
 
     }
 
-    public async UniTaskVoid TurnSys()
+    public async UniTaskVoid TurnSys(CancellationToken cancellationToken)
     {
         Sorting();
         while (true)
@@ -31,8 +35,7 @@ public class TurnSystem : IDisposable
             currentTurnObj = turnObj.Dequeue();
             turnObj.Enqueue(currentTurnObj); //현재 턴 오브젝트를 다시 큐에 넣음
             eventHandlers.typeEventHandler.Invoke<int>(typeof(GameInitializer), 1);
-
-
+            ((Unit)currentTurnObj).IncMp(20);
             if (currentTurnObj.UnitType == UnitType.Friendly) //스킬  ui표시
             {
                 eventHandlers.typeEventHandler.Invoke<Job>(typeof(SkillText), GetTurnObj().Job);
@@ -40,9 +43,13 @@ public class TurnSystem : IDisposable
                 eventHandlers.typeEventHandler.Invoke<Unit>(typeof(PlayerInformation), (Unit)currentTurnObj);
             }
             currentTurnObj.Excute().Forget();
-            await UniTask.WaitUntil(() => TurnProgress);
-            eventHandlers.typeEventHandler.Invoke<TurnObject>(typeof(Sorting), currentTurnObj);
-            eventHandlers.typeEventHandler.Invoke<Unit>(typeof(Sorting), ((Unit)currentTurnObj));
+            await UniTask.WaitUntil(() => TurnProgress, cancellationToken: cancellationToken);
+
+            if (currentTurnObj != null)
+            {
+                eventHandlers.typeEventHandler.Invoke<TurnObject>(typeof(Sorting), currentTurnObj);
+                eventHandlers.typeEventHandler.Invoke<Unit>(typeof(Sorting), ((Unit)currentTurnObj));
+            }
             TurnProgress = false;
             currentTurnObj.Target = null; //타겟 초기화
 
@@ -77,14 +84,39 @@ public class TurnSystem : IDisposable
         }
         var list = turnObj.ToList();
         eventHandlers.typeEventHandler.Invoke<TurnObject>(typeof(Sorting), turnObject);
+        turnObject.currentStates = TurnStates.End;
         list.Remove(turnObject);
         turnObj = new Queue<TurnObject>(list);
+
+        if (FastFriendly() == null)
+        {
+            TurnProgress = false;
+            eventHandlers.typeEventHandler.Invoke<bool>(typeof(GameEndUi), false);
+            Time.timeScale = 0;
+        }
+        else if (FastEnemy() == null)
+        {
+            TurnProgress = false;
+            eventHandlers.typeEventHandler.Invoke<bool>(typeof(GameEndUi), true);
+            Time.timeScale = 0;
+        }
+        Debug.Log("클리어");
         eventHandlers.typeEventHandler.Invoke<Unit>(typeof(PlayerInformation), (Unit)FastFriendly());
+    }
+
+    public CancellationTokenSource GetCancellationTokenSource()
+    {
+        return cancellationTokenSource;
     }
 
     public void Dispose()
     {
-        throw new NotImplementedException();
+        if (cancellationTokenSource != null)
+        {
+            cancellationTokenSource.Cancel();
+            cancellationTokenSource.Dispose();
+        }
+        turnObj.Clear();
     }
 
     public TurnObject GetTurnObj()
@@ -94,16 +126,27 @@ public class TurnSystem : IDisposable
 
     public TurnObject FastFriendly()
     {
-        if (friendlyTurnObj == null)
+        foreach (var turnObject in turnObj)
         {
-            foreach (var turnObject in turnObj)
+            if (turnObject.UnitType == UnitType.Friendly)
             {
-                if (turnObject.UnitType == UnitType.Friendly)
-                {
-                    return turnObject;
-                }
+                return turnObject;
             }
         }
-        return friendlyTurnObj;
+
+        return null;
+    }
+
+    public TurnObject FastEnemy()
+    {
+        foreach (var turnObject in turnObj)
+        {
+            if (turnObject.UnitType == UnitType.Enemy)
+            {
+                return turnObject;
+            }
+        }
+
+        return null;
     }
 }

@@ -1,5 +1,6 @@
 using Cysharp.Threading.Tasks;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
 public class UiManager : MonoBehaviour
@@ -12,7 +13,7 @@ public class UiManager : MonoBehaviour
     public WaitUI WaitUI;
     public StatesUI StatesUI;
     public SkillError SkillError;
-
+    public GameEndUi EndUi;
     public void Initialize(EventHandlers eventHandlers)
     {
         EventHandlers = eventHandlers;
@@ -23,6 +24,7 @@ public class UiManager : MonoBehaviour
         EventHandlers.typeEventHandler.Resgister<int>(typeof(WaitUI), WaitUI.OnUi);
         EventHandlers.typeEventHandler.Resgister<Unit>(typeof(StatesUI), StatesUI.Setting);
         EventHandlers.typeEventHandler.Resgister<int>(typeof(SkillError), (time) => SkillError.OnPanel(time).Forget());
+        EventHandlers.typeEventHandler.Resgister<bool>(typeof(GameEndUi), End);
     }
 
     public void UiChange(Unit unit)
@@ -42,5 +44,23 @@ public class UiManager : MonoBehaviour
 
     }
 
+    public void Home()
+    {
+        SceneManager.LoadScene("Loading");
+        SceneNumber.Number = 1;
+    }
 
+    public void ReTry()
+    {
+        SceneManager.LoadScene("Loading");
+        SceneNumber.Number = SceneManager.GetActiveScene().buildIndex;
+    }
+
+    public void End(bool type)
+    {
+        //BattleSceneCanvas.gameObject.SetActive(false);
+        //InGameCanvas.gameObject.SetActive(false);
+        EndUi.Set(type);
+        EndUi.gameObject.SetActive(true);
+    }
 }
