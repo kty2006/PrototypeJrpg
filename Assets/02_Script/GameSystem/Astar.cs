@@ -6,20 +6,37 @@ using System.Linq;
 using UnityEngine;
 public class Astar  //IDisposable 사용
 {
-    public Vector3Int strPos;
-    public Vector3Int endPos;
+    public Vector3 strPos;
+    public Vector3 endPos;
 
     public Coroutine currentTask = null;
 
     public LineRenderer lineRenderer;
 
+    public MapData mapData;
+
+    private EventHandlers eventHandlers;
+
     public List<CellData> openList = new List<CellData>();
-    public HashSet<Vector3Int> closedList = new HashSet<Vector3Int>();
-    public HashSet<Vector3Int> wallPoses = new HashSet<Vector3Int>();
-    public Vector3Int[] dir = new Vector3Int[4]
+    public HashSet<Vector3> closedList = new HashSet<Vector3>();
+    public HashSet<Vector3> wallPoses = new HashSet<Vector3>();
+    public Vector3[] dir;
+    public List<Unit> AllUnits;
+    public PathController Holl;
+    TurnObject turnObject = null; // 변수 초기화
+
+
+    public Astar(MapData mapData, EventHandlers eventHandlers, LineRenderer lineRenderer, PathController holl)
     {
-        new Vector3Int(2, 0, 0), new Vector3Int(-2, 0, 0), new Vector3Int(0, 0, 2), new Vector3Int(0, 0, -2)
-    };
+        dir = new Vector3[4]
+        {
+           new Vector3Int(mapData.CellSize.x, 0, 0), new Vector3Int(-mapData.CellSize.x, 0, 0), new Vector3Int(0, 0, mapData.CellSize.z), new Vector3Int(0, 0, -mapData.CellSize.z)
+        };
+        this.eventHandlers = eventHandlers;
+        this.lineRenderer = lineRenderer;
+        this.mapData = mapData;
+        Holl = holl;
+    }
 
     public List<Vector3> roadList = new List<Vector3>();
 
@@ -28,9 +45,14 @@ public class Astar  //IDisposable 사용
     {
         openList.Clear();
         closedList.Clear();
+        wallPoses.Clear();
+
         lineRenderer.positionCount = 0;
         openList.Add(new CellData(strPos, null, 0, CalculateHeuristic(strPos, endPos)));
 
+        turnObject = eventHandlers.typeEventHandler.Invoke<TurnObject>(typeof(UnitRegistry));
+
+        FindWall();
 
         while (openList.Count > 0)
         {
@@ -46,58 +68,41 @@ public class Astar  //IDisposable 사용
 
             for (int i = 0; i < 4; i++)
             {
-                Vector3Int neighborPos = currentCell.CurrentPos + dir[i];
-
-                if (wallPoses.Contains(neighborPos) || closedList.Contains(neighborPos))
+                Vector3 neighborPos = currentCell.CurrentPos + dir[i];
+                if (mapData.IsCell(neighborPos))
                 {
-                    continue;
+                    if (Holl.selectedPathPoints.Contains(neighborPos) || (wallPoses.Contains(neighborPos) || closedList.Contains(neighborPos)))
+                    {
+                        continue;
+                    }
+
+                    float tentativeG = currentCell.G + 10;
+                    float h = CalculateHeuristic(neighborPos, endPos);
+                    float f = tentativeG + h;
+
+                    CellData existingNeighbor = openList.Find(cell => cell.CurrentPos == neighborPos);
+
+                    if (existingNeighbor != null && tentativeG >= existingNeighbor.G)
+                    {
+                        continue;
+                    }
+
+                    if (existingNeighbor == null)
+                    {
+                        openList.Add(new CellData(neighborPos, currentCell, tentativeG, h));
+                        closedList.Add(currentCell.CurrentPos);
+                    }
+                    else
+                    {
+                        existingNeighbor.Parent = currentCell;
+                        existingNeighbor.G = tentativeG;
+                        existingNeighbor.F = f;
+                    }
                 }
 
-                int tentativeG = currentCell.G + 10;
-                int h = CalculateHeuristic(neighborPos, endPos);
-                int f = tentativeG + h;
-
-                CellData existingNeighbor = openList.Find(cell => cell.CurrentPos == neighborPos);
-
-                if (existingNeighbor != null && tentativeG >= existingNeighbor.G)
-                {
-                    continue;
-                }
-
-                if (existingNeighbor == null)
-                {
-                    openList.Add(new CellData(neighborPos, currentCell, tentativeG, h));
-                    closedList.Add(currentCell.CurrentPos);
-                }
-                else
-                {
-                    existingNeighbor.Parent = currentCell;
-                    existingNeighbor.G = tentativeG;
-                    existingNeighbor.F = f;
-                }
             }
             yield return null;
         }
-    }
-
-    public async UniTaskVoid RoadToEnd()
-    {
-        GameObject obj = Global.TurnSystem.GetTurnObj().gameObject;
-        //Debug.Log(obj.name);
-        roadList.Reverse();
-        foreach (Vector3 road in roadList)
-        {
-            float time = 0;
-            while (time <= 1)
-            {
-                obj.transform.position = Vector3.Lerp(obj.transform.position, road, time);
-                time += Time.deltaTime * 4;
-                await UniTask.Yield();
-            }
-        }
-        roadList.Clear();
-        currentTask = null;
-        Global.TurnSystem.GetTurnObj().SetState(TurnStates.End);
     }
 
     private void FillRoad(CellData cellData)
@@ -117,28 +122,64 @@ public class Astar  //IDisposable 사용
         }
     }
 
-    private int CalculateHeuristic(Vector3Int currentPos, Vector3Int endPos)
+    public async UniTaskVoid RoadToEnd()
     {
-        int x = Mathf.Abs(endPos.x - currentPos.x);
-        int y = Mathf.Abs(endPos.y - currentPos.y);
-        int min = Mathf.Min(x, y);
-        int max = Mathf.Max(x, y);
+
+        roadList.Reverse();
+
+        for (int i = 0; i < AllUnits.Count; i++)
+        {
+            if (AllUnits[i].transform.position == endPos)
+                roadList.Remove(endPos);
+        }
+
+        foreach (Vector3 road in roadList)
+        {
+            float time = 0;
+            while (time <= 1)
+            {
+                turnObject.transform.position = Vector3.Lerp(turnObject.transform.position, road, time);
+                time += Time.deltaTime * 4;
+                await UniTask.Yield();
+            }
+        }
+        roadList.Clear();
+        currentTask = null;
+        turnObject.AutoSetState();
+    }
+
+    private float CalculateHeuristic(Vector3 currentPos, Vector3 endPos)
+    {
+        float x = Mathf.Abs(endPos.x - currentPos.x);
+        float y = Mathf.Abs(endPos.y - currentPos.y);
+        float min = Mathf.Min(x, y);
+        float max = Mathf.Max(x, y);
         return min * 14 + (max - min) * 10;
     }
 
-
+    private void FindWall()
+    {
+        for (int i = 0; i < AllUnits.Count; i++)
+        {
+            if (AllUnits[i].transform.position == strPos)
+                continue;
+            if (AllUnits[i].transform.position == endPos)
+                continue;
+            wallPoses.Add(AllUnits[i].transform.position);
+        }
+    }
 }
 
 
 public class CellData
 {
-    public Vector3Int CurrentPos;
+    public Vector3 CurrentPos;
     public CellData Parent;
-    public int G;
-    public int H;
-    public int F;
+    public float G;
+    public float H;
+    public float F;
 
-    public CellData(Vector3Int currentPos, CellData parent, int g, int h)
+    public CellData(Vector3 currentPos, CellData parent, float g, float h)
     {
         this.CurrentPos = currentPos;
         this.Parent = parent;

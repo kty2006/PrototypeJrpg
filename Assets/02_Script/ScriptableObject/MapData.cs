@@ -4,39 +4,38 @@ using UnityEngine;
 [CreateAssetMenu(fileName = "MapData", menuName = "Scriptable Objects/MapData")]
 public class MapData : ScriptableObject
 {
-    public Vector2 MapSize;
+    public int Rows = 10;           // 그리드의 행 수
+    public int Columns = 10;
     public Vector3Int CellSize;
-    [SerializeField]
-    public RowArray<Vector3Int>[] ColumnArray;
-
+    public Vector3[] CellArray;
+    private EventHandlers eventHandlers;
+    public void Initialize(EventHandlers eventHandlers)
+    {
+        this.eventHandlers = eventHandlers;
+        this.eventHandlers.typeEventHandler.Resgister<Vector3, bool>(typeof(MapData), IsCell);
+    }
 
     [ContextMenu("MapGenerate")]
     public void MapGenerate()
     {
-        ColumnArray = new RowArray<Vector3Int>[(int)MapSize.x];
+        CellArray = new Vector3[(int)(Rows * Columns)];
 
-        for (int x = 0; x < (int)MapSize.y; x++)
+        for (int i = 0; i < Rows * Columns; i++)
         {
-            ColumnArray[x].Row = new Vector3Int[(int)MapSize.y];
+            CellArray[i] = new Vector3((CellSize.x / 2) + ((i % Rows) * CellSize.x), 0, (CellSize.z / 2) + (i / Columns * CellSize.z));
         }
+    }
 
-        for (int y = 0; y < MapSize.y; y++)
+    public bool IsCell(Vector3 position)
+    {
+        foreach (var cell in CellArray)
         {
-            for (int x = 0; x < MapSize.x; x++)
+            if (cell == position)
             {
-                ColumnArray[x].Row[y] = new Vector3Int((x + 1) * (CellSize.x / 2) + (x) * (CellSize.x / 2), 0, (y + 1) * (CellSize.z / 2) + (y) * (CellSize.z / 2));
+                return true;
             }
         }
+        return false;
     }
-}
 
-[Serializable]
-public struct RowArray<T>
-{
-    public T[] Row;
-
-    public RowArray(T[] row)
-    {
-        Row = row;
-    }
 }

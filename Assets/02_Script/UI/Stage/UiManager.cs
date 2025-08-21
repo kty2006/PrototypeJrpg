@@ -1,0 +1,46 @@
+using Cysharp.Threading.Tasks;
+using UnityEngine;
+using UnityEngine.UI;
+
+public class UiManager : MonoBehaviour
+{
+    public EventHandlers EventHandlers;
+    public PlayerInformation PlayerInformation;
+    public Sorting Sorting;
+    public BattleSceneUi BattleSceneCanvas;
+    public Canvas InGameCanvas;
+    public WaitUI WaitUI;
+    public StatesUI StatesUI;
+    public SkillError SkillError;
+
+    public void Initialize(EventHandlers eventHandlers)
+    {
+        EventHandlers = eventHandlers;
+        EventHandlers.typeEventHandler.Resgister<Unit>(typeof(PlayerInformation), PlayerInformation.SetUi);
+        EventHandlers.typeEventHandler.Resgister<Unit>(typeof(Sorting), Sorting.Add);
+        EventHandlers.typeEventHandler.Resgister<TurnObject>(typeof(Sorting), Sorting.Remove);
+        EventHandlers.typeEventHandler.Resgister<Unit>(typeof(BattleSceneUi), UiChange);
+        EventHandlers.typeEventHandler.Resgister<int>(typeof(WaitUI), WaitUI.OnUi);
+        EventHandlers.typeEventHandler.Resgister<Unit>(typeof(StatesUI), StatesUI.Setting);
+        EventHandlers.typeEventHandler.Resgister<int>(typeof(SkillError), (time) => SkillError.OnPanel(time).Forget());
+    }
+
+    public void UiChange(Unit unit)
+    {
+        if (InGameCanvas.gameObject.activeSelf)
+            InGameCanvas.gameObject.SetActive(false);
+        else
+            InGameCanvas.gameObject.SetActive(true);
+
+        if (BattleSceneCanvas.gameObject.activeSelf)
+            BattleSceneCanvas.gameObject.SetActive(false);
+        else
+        {
+            BattleSceneCanvas.gameObject.SetActive(true);
+            BattleSceneCanvas.SetUi(unit).Forget();
+        }
+
+    }
+
+
+}

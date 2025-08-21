@@ -1,0 +1,101 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9f28cda140b821346a5f03aedeb59e27, type: 3}
+  m_Name: Golem
+  m_EditorClassIdentifier: 
+  UnitType: 5
+  UnitImage: {fileID: 21300000, guid: 6849f6188bc41424ca889f24ea2a0d8d, type: 3}
+  StHp: 10
+  StSpeed: 50
+  StMp: 20
+  StNormalAttack: 5
+  TextImfo:
+    SkillTextImfos:
+    - SkillName: Idle
+      SkillDescription: 
+      ManaCost: 0
+    - SkillName: Move
+      SkillDescription: 
+      ManaCost: 0
+    - SkillName: Push
+      SkillDescription: 
+      ManaCost: 0
+    - SkillName: Attack
+      SkillDescription: 
+      ManaCost: 0
+    - SkillName: Skill1
+      SkillDescription: 
+      ManaCost: 0
+    - SkillName: Skill2
+      SkillDescription: 
+      ManaCost: 0
+  SkillDatas:
+  - UnitStates: 0
+    Scale: 0
+    MpCost: 0
+    GridMap:
+      Up: 0
+      Down: 0
+      Ysize: 0
+      Left: 0
+      Right: 0
+      Xsize: 0
+  - UnitStates: 1
+    Scale: 0
+    MpCost: 0
+    GridMap:
+      Up: 3
+      Down: 3
+      Ysize: 3
+      Left: 3
+      Right: 3
+      Xsize: 3
+  - UnitStates: 2
+    Scale: 0
+    MpCost: 0
+    GridMap:
+      Up: 3
+      Down: 3
+      Ysize: 3
+      Left: 3
+      Right: 3
+      Xsize: 3
+  - UnitStates: 3
+    Scale: 1
+    MpCost: 10
+    GridMap:
+      Up: 3
+      Down: 3
+      Ysize: 3
+      Left: 3
+      Right: 3
+      Xsize: 3
+  - UnitStates: 4
+    Scale: 0
+    MpCost: 0
+    GridMap:
+      Up: 3
+      Down: 3
+      Ysize: 3
+      Left: 3
+      Right: 3
+      Xsize: 3
+  - UnitStates: 5
+    Scale: 0
+    MpCost: 0
+    GridMap:
+      Up: 3
+      Down: 3
+      Ysize: 3
+      Left: 3
+      Right: 3
+      Xsize: 3
