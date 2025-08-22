@@ -34388,7 +34388,7 @@ MonoBehaviour:
     Right: 0
     Xsize: 0
   Speed: 0
-  Job: 0
+  Job: 6
   UnitType: 2
   AttackType: 0
   States: {fileID: 11400000, guid: 76ddaaa341d08f943ad432436f333965, type: 2}

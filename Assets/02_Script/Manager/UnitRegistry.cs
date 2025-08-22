@@ -45,7 +45,7 @@ public class UnitRegistry
             Debug.LogError("유닛이 존재하지 않음!");
             return null;
         }
-        return allUnits.FirstOrDefault(unit => unit.transform.position == position && turnObject.UnitType != unit.UnitType);
+        return allUnits.FirstOrDefault(unit => unit.transform.position == position );
     }
 
     public List<Unit> FindUnits(List<Vector3> gridMap)

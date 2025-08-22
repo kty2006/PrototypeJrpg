@@ -1,5 +1,5 @@
 using UnityEngine;
-using UnityEngine.EventSystems; 
+using UnityEngine.EventSystems;
 
 [RequireComponent(typeof(Camera))]
 public class CameraController : MonoBehaviour
@@ -22,6 +22,22 @@ public class CameraController : MonoBehaviour
     [SerializeField]
     private float maxZoom = 21f;
 
+
+    private float savePanXspeed, savePanYspeed = 10f;
+
+    private float saveMinXpan, saveMinYpan = 10f;
+
+    private float saveMaxXpan, saveMaxYpan = 15f;
+    private float savePanXvalue, savePanYvalue = 1;
+
+    private float saveZoomSpeed = 20f;
+    private float saveZoomValue = 1;
+
+    private float saveMinZoom = 20f;
+
+    private float saveMaxZoom = 21f;
+
+    private Vector3 stPos;
     private Camera mainCamera;
     private Vector3 lastMousePosition;
     private bool isPanning = false;
@@ -29,6 +45,19 @@ public class CameraController : MonoBehaviour
     private void Awake()
     {
         mainCamera = GetComponent<Camera>();
+        stPos = transform.position;
+        savePanXspeed = panXspeed;
+        savePanYspeed = panYspeed;
+        saveMinXpan = minXpan;
+        saveMinYpan = minYpan;
+        saveMaxXpan = maxXpan;
+        saveMaxYpan = maxYpan;
+        savePanXvalue = panXvalue;
+        savePanYvalue = panYvalue;
+        saveZoomSpeed = zoomSpeed;
+        saveZoomValue = zoomValue;
+        saveMinZoom = minZoom;
+        saveMaxZoom = maxZoom;
     }
 
     private void Update()
@@ -101,5 +130,23 @@ public class CameraController : MonoBehaviour
                 transform.Translate(0, 0, scroll * zoomSpeed * zoomValue, Space.Self);
             }
         }
+    }
+
+    public void CameraReset()
+    {
+        transform.position = stPos;
+        panXspeed = savePanXspeed;
+        panYspeed = savePanYspeed;
+        minXpan = saveMinXpan;
+        minYpan = saveMinYpan;
+        maxXpan = saveMaxXpan;
+        maxYpan = saveMaxYpan;
+        panXvalue = savePanXvalue;
+        panYvalue = savePanYvalue;
+        zoomSpeed = saveZoomSpeed;
+        zoomValue = saveZoomValue;
+        minZoom = saveMinZoom;
+        maxZoom = saveMaxZoom;
+
     }
 }

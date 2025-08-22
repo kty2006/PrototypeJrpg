@@ -8,10 +8,11 @@ public class StatesUI : MonoBehaviour
     public Text Hp;
     public Text Speed;
     public Text MP;
+    public Text Power;
 
-    public void Setting(Unit unit)
+    public void Setting(Unit unit, bool check)
     {
-        if (gameObject.activeSelf)
+        if (!check)
         {
             gameObject.SetActive(false);
         }
@@ -23,6 +24,7 @@ public class StatesUI : MonoBehaviour
             Hp.text = $"HP : {unit.LiqStates.Hp} / {unit.States.StHp}";
             Speed.text = $"SPEED : {unit.LiqStates.Speed}";
             MP.text = $"MP : {unit.LiqStates.Mp} / {unit.States.StMp}";
+            Power.text = $"Power : {unit.LiqStates.NormalAttack}";
         }
     }
 }

@@ -39,9 +39,9 @@ public class GameInitializer : MonoBehaviour
         var inputManager = gameObject.GetComponent<InputManager>();
 
         unitRegistry.Initialize(eventHandlers, TurnSystem);
-        inputManager.Initialize(eventHandlers, unitRegistry, actionRangeSystem, MapData);
+        inputManager.Initialize(eventHandlers, unitRegistry, actionRangeSystem, MapData,Holl);
         actionRangeSystem.Initialize(eventHandlers, unitRegistry);
-        enemyManager.Initialize(eventHandlers, actionRangeSystem);
+        enemyManager.Initialize(eventHandlers, actionRangeSystem,Holl);
         MapData.Initialize(eventHandlers);
         TurnSystem.Initialize(eventHandlers);
         GridSystem.Initialize(eventHandlers, unitRegistry);

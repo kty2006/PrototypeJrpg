@@ -48,19 +48,20 @@ public class Attack : I_Action
         states = unitStates;
 
         Transform transform = Unit.transform;
+        Quaternion rot = Quaternion.identity;
 
         FuncSt += () => { if (Unit.Target == null || (Unit.UnitType != Unit.Target.UnitType && Unit.Target.UnitType != UnitType.Object)) { Unit.EventHandlers.typeEventHandler.Invoke<Unit>(typeof(BattleScene), Unit); } };
-        FuncSt += () => { if (Unit.Target == null || (Unit.Target.UnitType == UnitType.Object)) { Unit.transform.LookAt(Unit.Target.transform); } };
+        FuncSt += () => { if (Unit.Target != null || (Unit.Target.UnitType == UnitType.Object)) { rot = Unit.transform.rotation; Unit.transform.LookAt(Unit.Target.transform); } };
         FuncSt += () => { Unit.DecMP(unit.States.GetMpCost(unitStates)); };
 
         FuncPl += () => { Unit.Target.DecHp(Unit.LiqStates.NormalAttack * unit.States.GetScale(unitStates)); };
-        FuncPl += () => { Unit.AudioSource.clip = Unit.States.GetAudio(unitStates); Debug.Log(Unit.AudioSource.clip); Unit.AudioSource.Play(); /*Unit.AudioSource.PlayOneShot(Unit.States.GetAudio(unitStates));*/ };
+        FuncPl += () => { Unit.AudioSource.clip = Unit.States.GetAudio(unitStates);  Unit.AudioSource.Play();  };
         FuncPl += () => { Unit.Target.Animator.SetTrigger("Hit"); };
 
 
         FuncEnd += () => { Unit.AutoSetState(); };
         FuncEnd += () => { Unit.Target.DieCheck(); };
-        FuncEnd += () => { Unit.transform.rotation = Quaternion.identity; };
+        FuncEnd += () => { Unit.transform.rotation = rot; };
     }
     public Unit Unit { get; set; }
     public Action FuncSt { get; set; }

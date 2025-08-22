@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+ï»¿using System.Collections.Generic;
 using UnityEngine;
 
 [RequireComponent(typeof(MeshFilter), typeof(MeshRenderer))]
@@ -20,7 +20,7 @@ public class GridSystem : MonoBehaviour
     {
         this.eventHandlers = eventHandlers;
         this.unitRegistry = unitRegistry;
-        this.eventHandlers.typeEventHandler.Resgister<TurnObject>(typeof(GridSystem), SetGrid);
+        this.eventHandlers.typeEventHandler.Resgister<TurnObject,bool>(typeof(GridSystem), SetGrid);
     }
 
     void Start()
@@ -37,7 +37,7 @@ public class GridSystem : MonoBehaviour
         List<Color> colorList = new List<Color>();
         List<int> indexList = new List<int>();
 
-        // °¡·ÎÁÙ »ý¼º
+        // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
         for (int row = 0; row < rowCount; row++)
         {
             for (int col = 0; col < MapData.Columns; col++)
@@ -54,7 +54,7 @@ public class GridSystem : MonoBehaviour
             }
         }
 
-        // ¼¼·ÎÁÙ »ý¼º
+        // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
         for (int col = 0; col < colCount; col++)
         {
             for (int row = 0; row < MapData.Rows; row++)
@@ -84,74 +84,78 @@ public class GridSystem : MonoBehaviour
         GetComponent<MeshFilter>().mesh = mesh;
     }
 
-    public void SetGrid(TurnObject obj)
+    public void SetGrid(TurnObject obj, bool check)
     {
-        // 1. ÀÌÀü¿¡ »öÄ¥µÈ ±×¸®µå°¡ ÀÖ´Ù¸é ÆÄ¶õ»öÀ¸·Î µÇµ¹¸³´Ï´Ù.
-        foreach (int i in changeColor)
+        // 1. ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Ä¥ï¿½ï¿½ ï¿½×¸ï¿½ï¿½å°¡ ï¿½Ö´Ù¸ï¿½ ï¿½Ä¶ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Çµï¿½ï¿½ï¿½ï¿½Ï´ï¿½.
+        if(!check)
         {
-            if (i < colors.Length)
+            foreach (int i in changeColor)
             {
-                colors[i] = Color.blue;
+                if (i < colors.Length)
+                {
+                    colors[i] = Color.blue;
+                }
+            }
+            changeColor.Clear();
+            Debug.Log(obj);
+        }
+        else
+        {
+            Debug.Log(obj);
+            List<Vector3> validCells = eventHandlers.typeEventHandler.Invoke<List<Vector3>>(typeof(ActionRangeSystem));
+
+            // Ç¥ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½â¼­ ï¿½ï¿½ï¿½ï¿½ï¿½Õ´Ï´ï¿½.
+            if (validCells == null || validCells.Count == 0)
+            {
+                mesh.colors = colors;
+                return;
+            }
+
+            // ï¿½ï¿½ï¿½ï¿½Æ®ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½È¸ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ HashSetï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Õ´Ï´ï¿½.
+            HashSet<Vector3> validCellSet = new HashSet<Vector3>(validCells);
+
+            float halfCellX = MapData.CellSize.x / 2f;
+            float halfCellZ = MapData.CellSize.z / 2f;
+
+            // 3. ï¿½ï¿½ï¿½ ï¿½×¸ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½È¸ï¿½Õ´Ï´ï¿½.
+            for (int i = 0; i < vertices.Length; i += 2)
+            {
+                Vector3 p1 = vertices[i];
+                Vector3 p2 = vertices[i + 1];
+
+                Vector3 adjacentCell1;
+                Vector3 adjacentCell2;
+
+                // ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Î¼ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Î¼ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Çºï¿½ï¿½Ï¿ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ß½ï¿½ ï¿½ï¿½Ç¥ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Õ´Ï´ï¿½.
+                if (Mathf.Approximately(p1.x, p2.x)) // ï¿½ï¿½ï¿½Î¼ï¿½
+                {
+                    float lineX = p1.x;
+                    float midZ = (p1.z + p2.z) / 2f;
+                    adjacentCell1 = new Vector3(lineX - halfCellX, 0, midZ);
+                    adjacentCell2 = new Vector3(lineX + halfCellX, 0, midZ);
+                }
+                else if (Mathf.Approximately(p1.z, p2.z)) // ï¿½ï¿½ï¿½Î¼ï¿½
+                {
+                    float lineZ = p1.z;
+                    float midX = (p1.x + p2.x) / 2f;
+                    adjacentCell1 = new Vector3(midX, 0, lineZ - halfCellZ);
+                    adjacentCell2 = new Vector3(midX, 0, lineZ + halfCellZ);
+                }
+                else
+                {
+                    continue; // ï¿½×¸ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Æ´Ï¸ï¿½ ï¿½Ç³Ê¶Ý´Ï´ï¿½.
+                }
+
+                // 4. ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ ï¿½Ï³ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½(validCellSet)ï¿½ï¿½ ï¿½ï¿½ï¿½ÔµÇ¾ï¿½ ï¿½Ö´Ù¸ï¿½, ï¿½Ø´ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ó°ï¿½ Ä¥ï¿½Õ´Ï´ï¿½.
+                if (validCellSet.Contains(adjacentCell1) || validCellSet.Contains(adjacentCell2))
+                {
+                    colors[i] = Color.red;
+                    colors[i + 1] = Color.red;
+                    changeColor.Add(i);
+                    changeColor.Add(i + 1);
+                }
             }
         }
-        changeColor.Clear();
-
-        // 2. ActionRangeSystemÀ¸·ÎºÎÅÍ Á¤È®ÇÑ °ø°Ý ¹üÀ§ ÁÂÇ¥ ¸®½ºÆ®¸¦ °¡Á®¿É´Ï´Ù.
-        List<Vector3> validCells = eventHandlers.typeEventHandler.Invoke<List<Vector3>>(typeof(ActionRangeSystem));
-
-        // Ç¥½ÃÇÒ ¹üÀ§°¡ ¾øÀ¸¸é ¿©±â¼­ Á¾·áÇÕ´Ï´Ù.
-        if (validCells == null || validCells.Count == 0)
-        {
             mesh.colors = colors;
-            return;
-        }
-
-        // ¸®½ºÆ®º¸´Ù ºü¸¥ Á¶È¸¸¦ À§ÇØ HashSetÀ» »ç¿ëÇÕ´Ï´Ù.
-        HashSet<Vector3> validCellSet = new HashSet<Vector3>(validCells);
-
-        float halfCellX = MapData.CellSize.x / 2f;
-        float halfCellZ = MapData.CellSize.z / 2f;
-
-        // 3. ¸ðµç ±×¸®µå ¼±À» ¼øÈ¸ÇÕ´Ï´Ù.
-        for (int i = 0; i < vertices.Length; i += 2)
-        {
-            Vector3 p1 = vertices[i];
-            Vector3 p2 = vertices[i + 1];
-
-            Vector3 adjacentCell1;
-            Vector3 adjacentCell2;
-
-            // ¼±ÀÌ ¼¼·Î¼±ÀÎÁö °¡·Î¼±ÀÎÁö ÆÇº°ÇÏ¿© ÀÎÁ¢ÇÑ µÎ ¼¿ÀÇ Áß½É ÁÂÇ¥¸¦ °è»êÇÕ´Ï´Ù.
-            if (Mathf.Approximately(p1.x, p2.x)) // ¼¼·Î¼±
-            {
-                float lineX = p1.x;
-                float midZ = (p1.z + p2.z) / 2f;
-                adjacentCell1 = new Vector3(lineX - halfCellX, 0, midZ);
-                adjacentCell2 = new Vector3(lineX + halfCellX, 0, midZ);
-            }
-            else if (Mathf.Approximately(p1.z, p2.z)) // °¡·Î¼±
-            {
-                float lineZ = p1.z;
-                float midX = (p1.x + p2.x) / 2f;
-                adjacentCell1 = new Vector3(midX, 0, lineZ - halfCellZ);
-                adjacentCell2 = new Vector3(midX, 0, lineZ + halfCellZ);
-            }
-            else
-            {
-                continue; // ±×¸®µå ¼±ÀÌ ¾Æ´Ï¸é °Ç³Ê¶Ý´Ï´Ù.
-            }
-
-            // 4. ÀÎÁ¢ÇÑ µÎ ¼¿ Áß ÇÏ³ª¶óµµ °ø°Ý ¹üÀ§(validCellSet)¿¡ Æ÷ÇÔµÇ¾î ÀÖ´Ù¸é, ÇØ´ç ¼±À» ºÓ°Ô Ä¥ÇÕ´Ï´Ù.
-            if (validCellSet.Contains(adjacentCell1) || validCellSet.Contains(adjacentCell2))
-            {
-                colors[i] = Color.red;
-                colors[i + 1] = Color.red;
-                changeColor.Add(i);
-                changeColor.Add(i + 1);
-            }
-        }
-
-        // 5. º¯°æµÈ »ö»ó Á¤º¸¸¦ ¸Þ½Ã¿¡ Àû¿ëÇÕ´Ï´Ù.
-        mesh.colors = colors;
     }
 }

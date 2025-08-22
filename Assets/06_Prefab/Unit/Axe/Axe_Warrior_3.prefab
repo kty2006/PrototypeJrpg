@@ -5114,7 +5114,7 @@ Animator:
   m_GameObject: {fileID: 5692058839579159302}
   m_Enabled: 1
   m_Avatar: {fileID: 9000000, guid: 26884749826e6774aa58a039de667f50, type: 3}
-  m_Controller: {fileID: 0}
+  m_Controller: {fileID: 9100000, guid: b74847f642b51c349b9ff5ebc534ea5d, type: 2}
   m_CullingMode: 1
   m_UpdateMode: 0
   m_ApplyRootMotion: 1
@@ -5152,7 +5152,7 @@ MonoBehaviour:
   Job: 3
   UnitType: 0
   AttackType: 0
-  States: {fileID: 0}
+  States: {fileID: 11400000, guid: ca9544dd566caff46a119823d81bb3f7, type: 2}
   Animator: {fileID: 9211146952765514110}
   LiqStates:
     Speed: 0

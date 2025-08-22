@@ -7,7 +7,8 @@ public enum Job
     Mage,
     Axe,
     Spear,
-    Golem
+    Golem,
+    Bomb
 }
 
 public enum AttackType

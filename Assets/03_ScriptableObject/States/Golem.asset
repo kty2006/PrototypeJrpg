@@ -30,14 +30,14 @@ MonoBehaviour:
       SkillDescription: 
       ManaCost: 0
     - SkillName: Attack
-      SkillDescription: 
-      ManaCost: 0
+      SkillDescription: X2
+      ManaCost: 20
     - SkillName: Skill1
-      SkillDescription: 
-      ManaCost: 0
+      SkillDescription: X3
+      ManaCost: 40
     - SkillName: Skill2
-      SkillDescription: 
-      ManaCost: 0
+      SkillDescription: X5
+      ManaCost: 60
   SkillDatas:
   - UnitStates: 0
     AudioResource: {fileID: 8300000, guid: df7087e4d8a8bb546bc08ce68632903f, type: 3}
@@ -55,11 +55,11 @@ MonoBehaviour:
     Scale: 0
     MpCost: 0
     GridMap:
-      Up: 3
-      Down: 3
+      Up: 4
+      Down: 4
       Ysize: 3
-      Left: 3
-      Right: 3
+      Left: 4
+      Right: 4
       Xsize: 3
   - UnitStates: 2
     AudioResource: {fileID: 8300000, guid: 2b21ef916f6943c439b71a7c74568878, type: 3}
@@ -77,31 +77,31 @@ MonoBehaviour:
     Scale: 2
     MpCost: 20
     GridMap:
-      Up: 2
-      Down: 2
-      Ysize: 2
-      Left: 2
-      Right: 2
-      Xsize: 2
+      Up: 3
+      Down: 3
+      Ysize: 1
+      Left: 3
+      Right: 3
+      Xsize: 1
   - UnitStates: 4
     AudioResource: {fileID: 8300000, guid: 323e15cfe809e114ab92c9f4b25e8bc2, type: 3}
     Scale: 3
     MpCost: 40
     GridMap:
-      Up: 2
-      Down: 2
+      Up: 3
+      Down: 3
       Ysize: 1
-      Left: 2
-      Right: 2
+      Left: 3
+      Right: 3
       Xsize: 1
   - UnitStates: 5
     AudioResource: {fileID: 8300000, guid: 323e15cfe809e114ab92c9f4b25e8bc2, type: 3}
     Scale: 5
     MpCost: 60
     GridMap:
-      Up: 2
-      Down: 2
+      Up: 3
+      Down: 3
       Ysize: 1
-      Left: 2
-      Right: 2
+      Left: 3
+      Right: 3
       Xsize: 1

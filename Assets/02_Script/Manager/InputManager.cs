@@ -14,14 +14,16 @@ public class InputManager : MonoBehaviour
     private TurnObject turnObject = new TurnObject();
     private CancellationTokenSource source = new();
     private int inputCount = 0;
+    private PathController holl;
     public Vector3 worldPos;
 
-    public void Initialize(EventHandlers eventHandler, UnitRegistry unitManager, ActionRangeSystem actionRangeSystem, MapData mapData)//빌더 패턴으로 개선
+    public void Initialize(EventHandlers eventHandler, UnitRegistry unitManager, ActionRangeSystem actionRangeSystem, MapData mapData, PathController holl)//빌더 패턴으로 개선
     {
         this.eventHandlers = eventHandler;
         this.unitRegistry = unitManager;
         this.actionRangeSystem = actionRangeSystem;
         this.mapData = mapData;
+        this.holl = holl;
     }
 
 
@@ -38,6 +40,7 @@ public class InputManager : MonoBehaviour
             {
                 if (inputCount > 0)
                 {
+                    eventHandlers.typeEventHandler.Invoke<TurnObject, bool>(typeof(GridSystem), turnObject, false);
                     actionRangeSystem.GridCheck(turnObject.GridMap, turnObject);
                 }
                 actionRangeSystem.GridCheck(turnObject.GridMap, turnObject);
@@ -58,7 +61,6 @@ public class InputManager : MonoBehaviour
         }
         else
         {
-
             eventHandlers.typeEventHandler.Invoke<int>(typeof(SkillError), 1);
         }
     }
@@ -72,7 +74,7 @@ public class InputManager : MonoBehaviour
             worldPos = turnObject.Pos;
             turnObject.Target = unitRegistry.FindUnitAt(worldPos, turnObject);
 
-            if (actionRangeSystem.GetActionGrid().Contains(worldPos))
+            if (actionRangeSystem.GetActionGrid().Contains(worldPos) && !holl.selectedPathPoints.Contains(worldPos))
             {
                 if (UnitStates.Push > unitStates)
                 { break; }

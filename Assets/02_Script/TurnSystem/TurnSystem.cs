@@ -11,7 +11,6 @@ public class TurnSystem : IDisposable
     public static bool TurnProgress = false;
     private Queue<TurnObject> turnObj = new Queue<TurnObject>();
     private TurnObject currentTurnObj;
-    private TurnObject friendlyTurnObj;
     private EventHandlers eventHandlers;
     private CancellationTokenSource cancellationTokenSource;
 
@@ -32,16 +31,17 @@ public class TurnSystem : IDisposable
         {
             if (turnObj.Count == 0)
                 return;
+
+            eventHandlers.typeEventHandler.Invoke<Unit>(typeof(PlayerInformation), (Unit)FastFriendly());
+            eventHandlers.typeEventHandler.Invoke<Job>(typeof(SkillText), ((Unit)FastFriendly()).Job);
+
             currentTurnObj = turnObj.Dequeue();
             turnObj.Enqueue(currentTurnObj); //현재 턴 오브젝트를 다시 큐에 넣음
+
             eventHandlers.typeEventHandler.Invoke<int>(typeof(GameInitializer), 1);
+
             ((Unit)currentTurnObj).IncMp(20);
-            if (currentTurnObj.UnitType == UnitType.Friendly) //스킬  ui표시
-            {
-                eventHandlers.typeEventHandler.Invoke<Job>(typeof(SkillText), GetTurnObj().Job);
-                friendlyTurnObj = currentTurnObj;
-                eventHandlers.typeEventHandler.Invoke<Unit>(typeof(PlayerInformation), (Unit)currentTurnObj);
-            }
+
             currentTurnObj.Excute().Forget();
             await UniTask.WaitUntil(() => TurnProgress, cancellationToken: cancellationToken);
 
@@ -86,21 +86,23 @@ public class TurnSystem : IDisposable
         eventHandlers.typeEventHandler.Invoke<TurnObject>(typeof(Sorting), turnObject);
         turnObject.currentStates = TurnStates.End;
         list.Remove(turnObject);
+        if (currentTurnObj == turnObject)
+        {
+            TurnProgress = true;
+            Debug.Log(turnObject);
+        }
         turnObj = new Queue<TurnObject>(list);
 
         if (FastFriendly() == null)
         {
-            TurnProgress = false;
             eventHandlers.typeEventHandler.Invoke<bool>(typeof(GameEndUi), false);
             Time.timeScale = 0;
         }
         else if (FastEnemy() == null)
         {
-            TurnProgress = false;
             eventHandlers.typeEventHandler.Invoke<bool>(typeof(GameEndUi), true);
             Time.timeScale = 0;
         }
-        Debug.Log("클리어");
         eventHandlers.typeEventHandler.Invoke<Unit>(typeof(PlayerInformation), (Unit)FastFriendly());
     }
 

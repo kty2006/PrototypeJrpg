@@ -80,7 +80,8 @@ public class ActionRangeSystem
             }
         }
 
-        eventHandlers.typeEventHandler.Invoke<TurnObject>(typeof(GridSystem), turnObject);
+        Debug.Log(UnitActionGrid.Count);
+        eventHandlers.typeEventHandler.Invoke<TurnObject, bool>(typeof(GridSystem), turnObject,true);
     }
 
     public List<Vector3> GetActionGrid()

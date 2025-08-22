@@ -22,7 +22,7 @@ public class UiManager : MonoBehaviour
         EventHandlers.typeEventHandler.Resgister<TurnObject>(typeof(Sorting), Sorting.Remove);
         EventHandlers.typeEventHandler.Resgister<Unit>(typeof(BattleSceneUi), UiChange);
         EventHandlers.typeEventHandler.Resgister<int>(typeof(WaitUI), WaitUI.OnUi);
-        EventHandlers.typeEventHandler.Resgister<Unit>(typeof(StatesUI), StatesUI.Setting);
+        EventHandlers.typeEventHandler.Resgister<Unit,bool>(typeof(StatesUI), StatesUI.Setting);
         EventHandlers.typeEventHandler.Resgister<int>(typeof(SkillError), (time) => SkillError.OnPanel(time).Forget());
         EventHandlers.typeEventHandler.Resgister<bool>(typeof(GameEndUi), End);
     }

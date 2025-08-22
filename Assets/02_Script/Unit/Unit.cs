@@ -42,7 +42,7 @@ public class Unit : TurnObject
         {
             actionList.Enqueue(() => { EventHandlers.typeEventHandler.Invoke<Vector3>(typeof(Astar), Pos); });
         }
-        actionList.Enqueue(() => { EventHandlers.typeEventHandler.Invoke<TurnObject>(typeof(GridSystem), this); AutoSetState(); });
+        actionList.Enqueue(() => { EventHandlers.typeEventHandler.Invoke<TurnObject, bool>(typeof(GridSystem), this,false); AutoSetState(); });
         actionList.Enqueue(() => { Action.Invoke().Forget(); });
     }
 
@@ -98,10 +98,12 @@ public class Unit : TurnObject
 
     public async UniTaskVoid Die()
     {
+        
         Animator.SetTrigger("Die");
         await UniTask.WaitForSeconds(Animator.GetCurrentAnimatorClipInfo(0).Length);
         EventHandlers.typeEventHandler.Invoke<Unit>(typeof(GameInitializer), this);
-        Debug.Log("´ÙÀÌ");
+        EventHandlers.typeEventHandler.Invoke<TurnObject, bool>(typeof(GridSystem), this, false);
+        //await UniTask.NextFrame();
         Destroy(gameObject);
         
     }
@@ -116,13 +118,13 @@ public class Unit : TurnObject
 
     private void OnMouseEnter()
     {
-        EventHandlers.typeEventHandler.Invoke<Unit>(typeof(StatesUI), this);
+        EventHandlers.typeEventHandler.Invoke<Unit,bool>(typeof(StatesUI), this,true);
 
     }
 
     private void OnMouseExit()
     {
-        EventHandlers.typeEventHandler.Invoke<Unit>(typeof(StatesUI), this);
+        EventHandlers.typeEventHandler.Invoke<Unit,bool>(typeof(StatesUI), this,false);
 
     }
 }

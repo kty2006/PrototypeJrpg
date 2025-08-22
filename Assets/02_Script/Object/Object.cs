@@ -14,11 +14,12 @@ public class Object : Unit
         List<Unit> units = EventHandlers.typeEventHandler.Invoke<List<Vector3>, List<Unit>>(typeof(UnitRegistry), gridMaps);
         foreach (var unit in units)
         {
-            if (unit.LiqStates.Hp > 0)
+            if (unit.LiqStates.Hp > 0 && unit.Job != Job.Bomb)
             {
                 unit.DecHp(States.StNormalAttack);
                 unit.Die().Forget();
             }
+            
         }
         EventHandlers.typeEventHandler.Invoke<Unit>(typeof(PlayerInformation), (Unit)EventHandlers.typeEventHandler.Invoke<TurnObject>(typeof(TurnSystem)));
         Wait(0.5f).Forget();
@@ -27,6 +28,7 @@ public class Object : Unit
     public async UniTaskVoid Wait(float i)
     {
         await UniTask.WaitForSeconds(i);
-        EventHandlers.typeEventHandler.Invoke<TurnObject>(typeof(GridSystem), this);
+        EventHandlers.typeEventHandler.Invoke<TurnObject, bool>(typeof(GridSystem), this, false);
+        Die().Forget();
     }
 }

@@ -5,6 +5,8 @@ public class BattleScene : MonoBehaviour
 {
     public Vector3 AttackerPos;
     public Vector3 DefenderPos;
+    public Quaternion AttackerRot;
+    public Quaternion DefenderRot;
     public Transform AttackerPosition;
     public Transform DefenderPosition;
     public Camera SceneCamera;
@@ -25,6 +27,8 @@ public class BattleScene : MonoBehaviour
 
         this.AttackerPos = Attacker.transform.position;
         this.DefenderPos = Attacker.Target.transform.position;
+        this.AttackerRot = Attacker.transform.rotation;
+        this.DefenderRot = Attacker.Target.transform.rotation;
         Attacker.transform.SetPositionAndRotation(AttackerPosition.position, AttackerPosition.rotation);
         Attacker.Target.transform.SetPositionAndRotation(DefenderPosition.position, DefenderPosition.rotation); ;
 
@@ -40,8 +44,8 @@ public class BattleScene : MonoBehaviour
         Attacker.Action.FuncEnd += () => EventHandlers.typeEventHandler.Invoke<Unit>(typeof(BattleSceneUi), Attacker);
         Attacker.Action.FuncEnd += () =>
         {
-            Attacker.transform.SetLocalPositionAndRotation(this.AttackerPos, Quaternion.identity);
-            Attacker.Target.transform.SetLocalPositionAndRotation(this.DefenderPos, Quaternion.identity);
+            Attacker.transform.SetLocalPositionAndRotation(this.AttackerPos, AttackerRot);
+            Attacker.Target.transform.SetLocalPositionAndRotation(this.DefenderPos, DefenderRot);
         };
 
         Debug.Log("dd");
