@@ -49,9 +49,9 @@ public class TurnSystem : IDisposable
             {
                 eventHandlers.typeEventHandler.Invoke<TurnObject>(typeof(Sorting), currentTurnObj);
                 eventHandlers.typeEventHandler.Invoke<Unit>(typeof(Sorting), ((Unit)currentTurnObj));
+                currentTurnObj.Target = null; //≈∏∞Ÿ √ ±‚»≠
             }
             TurnProgress = false;
-            currentTurnObj.Target = null; //≈∏∞Ÿ √ ±‚»≠
 
         }
     }
@@ -84,14 +84,15 @@ public class TurnSystem : IDisposable
         }
         var list = turnObj.ToList();
         eventHandlers.typeEventHandler.Invoke<TurnObject>(typeof(Sorting), turnObject);
-        turnObject.currentStates = TurnStates.End;
+
         list.Remove(turnObject);
         if (currentTurnObj == turnObject)
         {
+            currentTurnObj = null;
             TurnProgress = true;
-            Debug.Log(turnObject);
         }
         turnObj = new Queue<TurnObject>(list);
+
 
         if (FastFriendly() == null)
         {
@@ -103,7 +104,8 @@ public class TurnSystem : IDisposable
             eventHandlers.typeEventHandler.Invoke<bool>(typeof(GameEndUi), true);
             Time.timeScale = 0;
         }
-        eventHandlers.typeEventHandler.Invoke<Unit>(typeof(PlayerInformation), (Unit)FastFriendly());
+        else
+            eventHandlers.typeEventHandler.Invoke<Unit>(typeof(PlayerInformation), (Unit)FastFriendly());
     }
 
     public CancellationTokenSource GetCancellationTokenSource()

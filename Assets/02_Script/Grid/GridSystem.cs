@@ -97,11 +97,9 @@ public class GridSystem : MonoBehaviour
                 }
             }
             changeColor.Clear();
-            Debug.Log(obj);
         }
         else
         {
-            Debug.Log(obj);
             List<Vector3> validCells = eventHandlers.typeEventHandler.Invoke<List<Vector3>>(typeof(ActionRangeSystem));
 
             // ǥ���� ������ ������ ���⼭ �����մϴ�.

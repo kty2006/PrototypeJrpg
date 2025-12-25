@@ -110,14 +110,14 @@ public class Astar  //IDisposable 사용
         if (cellData.Parent != null)
         {
             lineRenderer.positionCount += 1;
-            lineRenderer.SetPosition(lineRenderer.positionCount - 1, cellData.CurrentPos);
+            lineRenderer.SetPosition(lineRenderer.positionCount - 1, cellData.CurrentPos+Vector3.up);
             roadList.Add(cellData.CurrentPos);
             FillRoad(cellData.Parent);
         }
         else
         {
             lineRenderer.positionCount += 1;
-            lineRenderer.SetPosition(lineRenderer.positionCount - 1, strPos);
+            lineRenderer.SetPosition(lineRenderer.positionCount - 1, strPos + Vector3.up);
             RoadToEnd().Forget();
         }
     }
@@ -135,13 +135,21 @@ public class Astar  //IDisposable 사용
 
         foreach (Vector3 road in roadList)
         {
+            // 이동하기 전에 다음 목표 지점(road)을 바라보도록 설정합니다.
+            turnObject.transform.LookAt(road);
+
             float time = 0;
+            // 현재 위치를 저장해 둡니다.
+            Vector3 startPosition = turnObject.transform.position;
             while (time <= 1)
             {
-                turnObject.transform.position = Vector3.Lerp(turnObject.transform.position, road, time);
+                // Lerp의 시작점을 고정하여 더 부드럽게 움직이도록 합니다.
+                turnObject.transform.position = Vector3.Lerp(startPosition, road, time);
                 time += Time.deltaTime * 4;
                 await UniTask.Yield();
             }
+            // 이동이 끝난 후 정확한 위치로 설정
+            turnObject.transform.position = road;
         }
         roadList.Clear();
         currentTask = null;

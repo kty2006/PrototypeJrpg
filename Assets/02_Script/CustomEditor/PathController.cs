@@ -13,14 +13,14 @@ public class PathController : MonoBehaviour
 
     [Tooltip("Path Editor 창에서 생성할 오브젝트의 프리팹입니다.")]
     [Header("Generation Settings")]
-    public GameObject prefabToCreate; // <<<--- 이 줄이 추가되었습니다!
+    public GameObject prefabToCreate;
 
     [Header("Editor Settings")]
     [Tooltip("체크하면 이 컨트롤러가 선택한 점들을 다른 컨트롤러가 중복해서 선택할 수 있게 허용합니다.")]
     public bool allowOverlap = false;
 
     [Tooltip("Path Editor 창에 이 컨트롤러의 선택 영역이 표시될 색상입니다.")]
-    public Color pathColor = Color.cyan; // <<<--- 이 줄이 추가되었습니다!
+    public Color pathColor = Color.cyan;
 
     public MapData MapData;
 

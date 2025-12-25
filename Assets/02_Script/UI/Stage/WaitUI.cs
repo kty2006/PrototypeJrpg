@@ -13,6 +13,7 @@ public class WaitUI : MonoBehaviour
         if (gameObject.activeSelf)
         {
             gameObject.SetActive(false);
+            Debug.Log("ªË¡¶");
         }
         else
         {

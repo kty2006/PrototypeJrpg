@@ -12,14 +12,12 @@ public class EnemyManager
     protected UnitRegistry unitRegistry;
     protected ActionRangeSystem actionRangeSystem;
     protected TurnObject turnObject = new TurnObject();
-    protected bool equals = false;
     protected PathController holl;
     public void Initialize(EventHandlers eventHandlers, ActionRangeSystem actionRangeSystem, PathController holl)
     {
         this.eventHandlers = eventHandlers;
         this.actionRangeSystem = actionRangeSystem;
         this.holl = holl;
-        eventHandlers.typeEventHandler.Resgister<int>(typeof(GameInitializer), Equals);
         eventHandlers.typeEventHandler.Resgister<int>(typeof(GameInitializer), Set);
 
     }
@@ -34,18 +32,28 @@ public class EnemyManager
     {
         while (true)
         {
-            await UniTask.WaitUntil(() => equals && turnObject.UnitType == UnitType.Enemy);
-            equals = false;
-            eventHandlers.typeEventHandler.Invoke<int>(typeof(WaitUI), 0);
-            await UniTask.WaitForSeconds(Random.Range(3, 4));
-            eventHandlers.typeEventHandler.Invoke<int>(typeof(WaitUI), 0);
-            SelectAction();
-        }
+            await UniTask.WaitUntil(() => turnObject != null && turnObject.UnitType == UnitType.Enemy && turnObject.GetStates() != TurnStates.End);
 
-    }
-    void Equals(int i)
-    {
-        equals = true;
+            // turnObject가 null이 되거나, 턴이 끝나는 경우를 대비한 안전장치
+            if (turnObject == null || turnObject.UnitType != UnitType.Enemy)
+            {
+                await UniTask.Yield(); // 한 프레임 대기 후 다시 확인
+                continue;
+            }
+
+            eventHandlers.typeEventHandler.Invoke<int>(typeof(WaitUI), 0);
+            await UniTask.WaitForSeconds(Random.Range(3, 4)); // 대기 시간 약간 줄임
+            eventHandlers.typeEventHandler.Invoke<int>(typeof(WaitUI), 0);
+
+            // 행동 선택 전, 다시 한번 현재 턴이 유효한지 확인
+            if (turnObject != null && turnObject.UnitType == UnitType.Enemy && !TurnSystem.TurnProgress)
+            {
+                SelectAction();
+                Debug.Log("삭제2");
+            }
+            turnObject = null;
+            // 행동이 끝난 후, 다음 턴을 위해 turnObject를 null로 설정하여 중복 실행을 방지
+        }
     }
 
     void Set(int i)
